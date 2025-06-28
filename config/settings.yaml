@@ -1,0 +1,116 @@
+# Общие настройки системы CodeInspector
+
+# Настройки анализа
+analysis:
+  # Максимальное количество файлов для анализа за раз
+  max_files_per_batch: 50
+  
+  # Максимальное количество параллельных агентов
+  max_concurrent_agents: 5
+  
+  # Максимальный размер файла для анализа (в КБ)
+  max_file_size_kb: 500
+  
+  # Глубина рекурсивного сканирования
+  max_depth: 10
+  
+  # Минимальный размер фрагмента кода для LLM анализа (строки)
+  min_code_fragment_lines: 3
+  
+  # Максимальный размер фрагмента кода для LLM анализа (строки)
+  max_code_fragment_lines: 50
+
+# Поддерживаемые расширения файлов
+supported_extensions:
+  python: [".py", ".pyw"]
+  javascript: [".js", ".jsx", ".ts", ".tsx", ".mjs"]
+  java: [".java"]
+  cpp: [".cpp", ".cxx", ".cc", ".c", ".hpp", ".h"]
+  go: [".go"]
+  rust: [".rs"]
+  csharp: [".cs"]
+  php: [".php"]
+  ruby: [".rb"]
+  
+# Игнорируемые директории
+ignore_directories:
+  - "__pycache__"
+  - "node_modules"
+  - ".git"
+  - ".svn"
+  - "dist"
+  - "build"
+  - "target"
+  - ".pytest_cache"
+  - ".coverage"
+  - "venv"
+  - "env"
+  - ".env"
+
+# Игнорируемые файлы
+ignore_files:
+  - "*.pyc"
+  - "*.pyo"
+  - "*.pyd"
+  - "*.so"
+  - "*.dll"
+  - "*.exe"
+  - "*.class"
+  - "*.jar"
+  - "*.war"
+  - "*.min.js"
+  - "*.min.css"
+
+# Настройки вывода
+output:
+  # Директория для результатов
+  output_dir: "./output"
+  
+  # Формат документации
+  format: "markdown"
+  
+  # Генерировать диаграммы
+  generate_diagrams: true
+  
+  # Включать исходный код в документацию
+  include_source_snippets: true
+  
+  # Максимальная длина сниппета исходного кода
+  max_snippet_lines: 20
+  
+  # Язык документации
+  documentation_language: "ru"
+
+# Настройки диаграмм
+diagrams:
+  # Тип диаграмм (mermaid, graphviz, both)
+  type: "mermaid"
+  
+  # Включить диаграмму архитектуры
+  architecture_diagram: true
+  
+  # Включить граф зависимостей
+  dependency_graph: true
+  
+  # Включить диаграмму классов
+  class_diagram: true
+
+# Настройки логирования
+logging:
+  level: "INFO"
+  format: "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+  file: "./logs/codeinspector.log"
+
+# Экспериментальные функции
+experimental:
+  # Использовать кеширование результатов анализа
+  enable_caching: true
+  
+  # Анализ зависимостей между модулями
+  dependency_analysis: true
+  
+  # Поиск потенциальных проблем в коде
+  issue_detection: false
+  
+  # Генерация метрик качества кода
+  quality_metrics: false

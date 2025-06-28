@@ -1,0 +1,29 @@
+# OpenAI Agents SDK (already available in the project)
+# agents>=1.0.0
+
+# AST parsing
+tree-sitter>=0.20.0
+tree-sitter-python>=0.20.0
+tree-sitter-javascript>=0.20.0
+tree-sitter-java>=0.20.0
+tree-sitter-cpp>=0.20.0
+tree-sitter-go>=0.20.0
+tree-sitter-rust>=0.20.0
+
+# Model providers
+openai>=1.0.0
+
+# YAML configuration
+pyyaml>=6.0
+
+# File operations and utilities
+pathlib>=1.0.0
+
+# Markdown processing
+markdown>=3.4.0
+
+# Diagram generation (optional)
+graphviz>=0.20.0
+
+# Progress tracking
+rich>=13.0.0

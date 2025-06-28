@@ -1,0 +1,53 @@
+# Конфигурация моделей для разных агентов
+models:
+  # Мастер-агент - для планирования и координации
+  master_agent:
+    provider: "lmstudio"
+    model: "deepseek-r1-0528-qwen3-8b@q8_k"
+    settings:
+      temperature: 0.1
+      max_tokens: 4000
+  
+  # Агент анализа файлов - для семантического анализа кода
+  file_analysis_agent:
+    provider: "lmstudio"  # Используем локальную модель для приватности
+    model: "qwen/qwen3-4b"
+    settings:
+      temperature: 0.2
+      max_tokens: 2000
+      stream: false
+  
+  # Агент-композитор - для генерации документации
+  composer_agent:
+    provider: "lmstudio"
+    model: "deepseek-r1-0528-qwen3-8b@q6_k"
+    settings:
+      temperature: 0.3
+      max_tokens: 8000
+
+# Конфигурация провайдеров
+providers:
+  openrouter:
+    api_key_env: "OPENROUTER_API_KEY"
+    base_url: "https://openrouter.ai/api/v1"
+  
+  lmstudio:
+    base_url_env: "LMSTUDIO_BASE_URL"
+    default_base_url: "http://localhost:1234/v1"
+
+# Резервные конфигурации для разных сценариев
+fallback_configs:
+  # Только OpenRouter (если LM Studio недоступен)
+  openrouter_only:
+    file_analysis_agent:
+      provider: "openrouter"
+      model: "google/gemini-2.0-flash-exp"
+  
+  # Только LM Studio (полностью локально)
+  local_only:
+    master_agent:
+      provider: "lmstudio"
+      model: "deepseek-r1-0528-qwen3-8b@q8_k"
+    composer_agent:
+      provider: "lmstudio"
+      model: "deepseek-r1-0528-qwen3-8b@q8_k"
