@@ -8,7 +8,7 @@
 
 ## Исправленные проблемы
 
-### 1. ComposerAgent (composer_agent.py)
+### 1. WriterAgent (writer_agent.py)
 
 **Проблемы:**
 - Отсутствовала документация функций
@@ -83,7 +83,7 @@
 ## Результаты тестирования
 
 ### Тесты агентов
-- ✅ ComposerAgent: Корректно генерирует документацию
+- ✅ WriterAgent: Корректно генерирует документацию
 - ✅ FileAnalysisAgent: Правильно анализирует файлы
 - ✅ MasterAgent: Успешно координирует анализ
 
@@ -104,7 +104,7 @@
 ```
 CodeInspector/
 ├── agents/
-│   ├── composer_agent.py      # ✅ Исправлен
+│   ├── writer_agent.py        # ✅ Исправлен
 │   ├── file_analysis_agent.py # ✅ Исправлен
 │   └── master_agent.py        # ✅ Исправлен
 ├── config/

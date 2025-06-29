@@ -22,7 +22,7 @@ from src.agents.model_settings import ModelSettings
 from core.knowledge_base import KnowledgeBase, ProjectAnalysis
 from parser.language_support import LanguageSupport, scan_directory, filter_code_files
 from agents.file_analysis_agent import FileAnalysisAgent
-from agents.composer_agent import ComposerAgent
+from agents.writer_agent import WriterAgent
 
 
 class MasterAgent:
@@ -122,7 +122,7 @@ class MasterAgent:
                     'model': 'gpt-3.5-turbo',
                     'settings': {'temperature': 0.3, 'max_tokens': 4000}
                 },
-                'composer_agent': {
+                'writer_agent': {
                     'provider': 'openrouter',
                     'model': 'gpt-4o-mini',
                     'settings': {'temperature': 0.3, 'max_tokens': 4000}
@@ -417,10 +417,10 @@ class MasterAgent:
     async def _generate_documentation(self) -> str:
         """Генерация финальной документации."""
         try:
-            composer_config = self.config.get('models', {}).get('composer_agent', {})
-            composer = ComposerAgent(composer_config)
-            
-            documentation = await composer.compose_documentation(self.knowledge_base)
+            composer_config = self.config.get('models', {}).get('writer_agent', {})
+            composer = WriterAgent(composer_config)
+
+            documentation = await composer.write_documentation(self.knowledge_base)
             return documentation
             
         except Exception as e:

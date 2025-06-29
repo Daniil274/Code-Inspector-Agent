@@ -240,7 +240,7 @@ class ComposerAgent:
             "### Модели и провайдеры",
             f"- **Master Agent**: {self.model_config.get('master_agent', {}).get('model', 'Не указано')}",
             f"- **File Analysis Agent**: {self.model_config.get('file_analysis_agent', {}).get('model', 'Не указано')}",
-            f"- **Composer Agent**: {self.model_config.get('composer_agent', {}).get('model', 'Не указано')}",
+            f"- **Writer Agent**: {self.model_config.get('writer_agent', {}).get('model', 'Не указано')}",
             "",
             "### Настройки анализа",
             "- **Максимальная глубина сканирования**: 10 уровней",

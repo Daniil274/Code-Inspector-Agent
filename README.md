@@ -120,8 +120,8 @@ file_analysis_agent:
     temperature: 0.3
     max_tokens: 4000
 
-# Агент-композитор документации
-composer_agent:
+# Агент-писатель документации
+writer_agent:
   provider: openrouter
   model: anthropic/claude-3.5-sonnet
   settings:
