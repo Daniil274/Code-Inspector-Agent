@@ -104,7 +104,7 @@ async def main():
         os.chdir(current_dir)
         
         # Создаем мастер-агента
-        master_agent = MasterAgent(config_path=args.config)
+        master_agent = MasterAgent(config_path=args.config, output_dir=args.output)
         
         # Запускаем анализ
         result = await master_agent.analyze_project(args.project_path)
@@ -119,11 +119,11 @@ async def main():
         print(f"📄 Отчет сохранен: {result_file}")
         
         # Показываем дополнительные файлы
-        json_file = Path("knowledge_base.json")
+        json_file = output_dir / "analysis_data.json"
         if json_file.exists():
             print(f"💾 База знаний: {json_file}")
-        
-        markdown_file = Path("project_analysis.md")
+
+        markdown_file = output_dir / "README_ANALYSIS.md"
         if markdown_file.exists():
             print(f"📝 Markdown отчет: {markdown_file}")
         

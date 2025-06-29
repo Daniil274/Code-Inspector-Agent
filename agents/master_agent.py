@@ -28,10 +28,10 @@ from agents.composer_agent import ComposerAgent
 class MasterAgent:
     """Главный агент системы CodeInspector."""
     
-    def __init__(self, config_path: Optional[str] = None):
+    def __init__(self, config_path: Optional[str] = None, output_dir: Optional[str] = None):
         self.config_path = config_path or "config"
         self.config = self._load_config()
-        self.knowledge_base = KnowledgeBase()
+        self.knowledge_base = KnowledgeBase(output_dir or "output")
         self.language_support = LanguageSupport()
         
         # Создаем планирующего агента
