@@ -25,6 +25,12 @@ models:
       temperature: 0.3
       max_tokens: 8000
 
+  # ReaderAgent - структурный парсер без LLM
+  reader_agent:
+    provider: null
+    model: null
+    settings: {}
+
 # Конфигурация провайдеров
 providers:
   openrouter:
