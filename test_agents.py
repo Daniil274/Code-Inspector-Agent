@@ -22,7 +22,7 @@ sys.path.insert(0, current_dir)
 
 from agents.master_agent import MasterAgent
 from agents.file_analysis_agent import FileAnalysisAgent
-from agents.composer_agent import ComposerAgent
+from agents.writer_agent import WriterAgent
 from core.knowledge_base import KnowledgeBase, FileAnalysisReport
 
 
@@ -64,7 +64,7 @@ class TestCodeInspectorAgents:
                     "model": "gpt-3.5-turbo",
                     "settings": {"temperature": 0.3, "max_tokens": 4000}
                 },
-                "composer_agent": {
+                "writer_agent": {
                     "provider": "openrouter",
                     "model": "gpt-4o-mini",
                     "settings": {"temperature": 0.3, "max_tokens": 4000}
@@ -137,9 +137,9 @@ class TestCodeInspectorAgents:
             print(f"[Test] ✗ Ошибка в FileAnalysisAgent: {e}")
             return False
     
-    async def test_composer_agent(self):
-        """Тест ComposerAgent."""
-        print("\n[Test] Тестирование ComposerAgent...")
+    async def test_writer_agent(self):
+        """Тест WriterAgent."""
+        print("\n[Test] Тестирование WriterAgent...")
         
         try:
             # Создаем тестовую базу знаний
@@ -168,13 +168,13 @@ class TestCodeInspectorAgents:
                 "settings": {"temperature": 0.3, "max_tokens": 2000}
             }
             
-            composer = ComposerAgent(config)
+            composer = WriterAgent(config)
             
             # Генерируем документацию
-            documentation = await composer.compose_documentation(kb)
+            documentation = await composer.write_documentation(kb)
             
             if documentation:
-                print(f"[Test] ✓ ComposerAgent успешно создал документацию")
+                print(f"[Test] ✓ WriterAgent успешно создал документацию")
                 print(f"[Test]   - Длина документации: {len(documentation)} символов")
                 
                 # Проверяем наличие ключевых разделов
@@ -200,11 +200,11 @@ class TestCodeInspectorAgents:
                 
                 return True
             else:
-                print(f"[Test] ✗ ComposerAgent не смог создать документацию")
+                print(f"[Test] ✗ WriterAgent не смог создать документацию")
                 return False
                 
         except Exception as e:
-            print(f"[Test] ✗ Ошибка в ComposerAgent: {e}")
+            print(f"[Test] ✗ Ошибка в WriterAgent: {e}")
             return False
     
     async def test_master_agent_config_loading(self):
@@ -284,7 +284,7 @@ class TestCodeInspectorAgents:
         
         # Тесты отдельных агентов
         results['file_analysis_agent'] = await self.test_file_analysis_agent()
-        results['composer_agent'] = await self.test_composer_agent()
+        results['writer_agent'] = await self.test_writer_agent()
         results['master_agent_config'] = await self.test_master_agent_config_loading()
         results['integration'] = await self.test_integration()
         

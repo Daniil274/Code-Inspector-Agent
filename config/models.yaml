@@ -17,8 +17,8 @@ models:
       max_tokens: 2000
       stream: false
   
-  # Агент-композитор - для генерации документации
-  composer_agent:
+  # Агент-писатель - для генерации документации
+  writer_agent:
     provider: "lmstudio"
     model: "deepseek-r1-0528-qwen3-8b@q6_k"
     settings:
@@ -48,6 +48,6 @@ fallback_configs:
     master_agent:
       provider: "lmstudio"
       model: "deepseek-r1-0528-qwen3-8b@q8_k"
-    composer_agent:
+    writer_agent:
       provider: "lmstudio"
       model: "deepseek-r1-0528-qwen3-8b@q8_k"
