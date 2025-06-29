@@ -23,6 +23,8 @@ from core.knowledge_base import KnowledgeBase, ProjectAnalysis
 from parser.language_support import LanguageSupport, scan_directory, filter_code_files
 from agents.file_analysis_agent import FileAnalysisAgent
 from agents.composer_agent import ComposerAgent
+from agents.reader_agent import ReaderAgent
+from agents.processor_agent import ProcessorAgent
 
 
 class MasterAgent:
@@ -262,7 +264,7 @@ class MasterAgent:
             # Создаем структурированный план
             plan = {
                 "priority_files": self._extract_priority_files(files),
-                "file_groups": self._group_files_by_modules(files),
+                "modules": self._group_files_by_modules(files, project_path),
                 "strategy": plan_result or "Последовательный анализ файлов по приоритету",
                 "total_files": len(files)
             }
@@ -274,7 +276,7 @@ class MasterAgent:
             # Возвращаем базовый план
             return {
                 "priority_files": files,
-                "file_groups": {"main": files},
+                "modules": {"main": files},
                 "strategy": "Базовый последовательный анализ",
                 "total_files": len(files)
             }
@@ -301,69 +303,48 @@ class MasterAgent:
         
         return priority_files + regular_files
     
-    def _group_files_by_modules(self, files: List[str]) -> Dict[str, List[str]]:
-        """Группировка файлов по модулям."""
-        modules = {}
-        
+    def _group_files_by_modules(self, files: List[str], project_path: str) -> Dict[str, List[str]]:
+        """Группировка файлов по верхнему модулю проекта."""
+        modules: Dict[str, List[str]] = {}
+
         for file_path in files:
-            # Группируем по директориям
-            dir_name = os.path.dirname(file_path)
-            if not dir_name:
-                dir_name = "root"
-            
-            if dir_name not in modules:
-                modules[dir_name] = []
-            modules[dir_name].append(file_path)
-        
+            rel = os.path.relpath(file_path, project_path)
+            parts = rel.split(os.sep)
+            module = parts[0] if len(parts) > 1 else "root"
+            modules.setdefault(module, []).append(file_path)
+
         return modules
     
     async def _execute_file_analysis(self, plan: Dict) -> None:
-        """Выполнение анализа файлов согласно плану."""
-        files_to_analyze = plan["priority_files"]
-        max_concurrent = self.config.get('settings', {}).get('analysis', {}).get('max_concurrent_agents', 5)
-        max_files = self.config.get('settings', {}).get('analysis', {}).get('max_files_per_batch', 50)
-        
-        # Ограничиваем количество файлов
-        if len(files_to_analyze) > max_files:
-            print(f"[MasterAgent] Ограничиваю анализ до {max_files} файлов (из {len(files_to_analyze)})")
-            files_to_analyze = files_to_analyze[:max_files]
-        
-        # Создаем агента для анализа файлов
-        file_agent_config = self.config.get('models', {}).get('file_analysis_agent', {})
-        
-        # Группируем файлы для параллельной обработки
-        file_batches = [files_to_analyze[i:i + max_concurrent] 
-                       for i in range(0, len(files_to_analyze), max_concurrent)]
-        
-        total_processed = 0
-        for batch_idx, batch in enumerate(file_batches):
-            print(f"[MasterAgent] Обрабатываю батч {batch_idx + 1}/{len(file_batches)} ({len(batch)} файлов)")
-            
-            # Создаем задачи для параллельного выполнения
-            tasks = []
-            for file_path in batch:
-                # Исправление: передаем file_agent_config явно
-                agent = FileAnalysisAgent(file_agent_config)
-                task = asyncio.create_task(agent.analyze_file(file_path))
-                tasks.append((file_path, task))
-            
-            # Ждем завершения всех задач в батче
-            for file_path, task in tasks:
-                try:
-                    result = await task
-                    if result:
-                        self.knowledge_base.add_file_report(file_path, result)
-                        # Добавляем зависимости в граф
-                        for dep in result.dependencies:
-                            self.knowledge_base.add_dependency(file_path, dep)
-                        total_processed += 1
-                    else:
-                        print(f"[MasterAgent] Не удалось проанализировать файл: {file_path}")
-                        
-                except Exception as e:
-                    print(f"[MasterAgent] Ошибка при анализе файла {file_path}: {e}")
-            
-            print(f"[MasterAgent] Батч завершен. Обработано файлов: {total_processed}")
+        """Выполнение анализа файлов согласно плану по модулям."""
+        modules = plan.get("modules") or {"main": plan.get("priority_files", [])}
+
+        tasks = [asyncio.create_task(self._process_module(name, files)) for name, files in modules.items()]
+        results = await asyncio.gather(*tasks)
+
+        for kb in results:
+            if isinstance(kb, KnowledgeBase):
+                self.knowledge_base.merge(kb)
+
+    async def _process_module(self, module_name: str, files: List[str]) -> KnowledgeBase:
+        """Анализ группы файлов модуля."""
+        partial_kb = KnowledgeBase()
+        reader = ReaderAgent()
+        processor_config = self.config.get('models', {}).get('file_analysis_agent', {})
+        processor = ProcessorAgent(processor_config)
+
+        for file_path in files:
+            try:
+                content = await reader.read(file_path)
+                report = await processor.process(file_path, content)
+                if report:
+                    partial_kb.add_file_report(file_path, report)
+                    for dep in report.dependencies:
+                        partial_kb.add_dependency(file_path, dep)
+            except Exception as e:
+                print(f"[MasterAgent] Ошибка при обработке {file_path}: {e}")
+
+        return partial_kb
     
     async def _analyze_project_architecture(self, project_path: str, files: List[str]) -> None:
         """Анализ архитектуры проекта."""
