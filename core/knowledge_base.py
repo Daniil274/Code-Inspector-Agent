@@ -283,3 +283,11 @@ class KnowledgeBase:
         self.project_analysis = None
         self.dependency_graph.clear()
         self.analysis_metadata.clear()
+
+    def merge(self, other: "KnowledgeBase") -> None:
+        """Merge another KnowledgeBase into this one."""
+        for path, report in other.file_reports.items():
+            self.file_reports[path] = report
+        for src, deps in other.dependency_graph.items():
+            for dep in deps:
+                self.add_dependency(src, dep)
