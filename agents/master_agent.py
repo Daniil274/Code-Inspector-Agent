@@ -19,10 +19,12 @@ from src.agents.models.openrouter_provider import OpenRouterProvider
 from src.agents.models.lmstudio_provider import LMStudioProvider
 from src.agents.model_settings import ModelSettings
 
-from core.knowledge_base import KnowledgeBase, ProjectAnalysis
+from core.knowledge_base import KnowledgeBase, ProjectAnalysis, FileAnalysisReport
 from parser.language_support import LanguageSupport, scan_directory, filter_code_files
-from agents.file_analysis_agent import FileAnalysisAgent
+from parser.ast_parser import CodeStructure
 from agents.composer_agent import ComposerAgent
+from agents.reader_agent import ReaderAgent
+from agents.processor_agent import ProcessorAgent
 
 
 class MasterAgent:
@@ -126,6 +128,11 @@ class MasterAgent:
                     'provider': 'openrouter',
                     'model': 'gpt-4o-mini',
                     'settings': {'temperature': 0.3, 'max_tokens': 4000}
+                },
+                'processor_agent': {
+                    'provider': 'openrouter',
+                    'model': 'gpt-3.5-turbo',
+                    'settings': {'temperature': 0.3, 'max_tokens': 1000}
                 }
             }
         
@@ -328,8 +335,9 @@ class MasterAgent:
             print(f"[MasterAgent] Ограничиваю анализ до {max_files} файлов (из {len(files_to_analyze)})")
             files_to_analyze = files_to_analyze[:max_files]
         
-        # Создаем агента для анализа файлов
-        file_agent_config = self.config.get('models', {}).get('file_analysis_agent', {})
+        reader = ReaderAgent()
+        proc_config = self.config.get('models', {}).get('processor_agent', {})
+        processor = ProcessorAgent(proc_config)
         
         # Группируем файлы для параллельной обработки
         file_batches = [files_to_analyze[i:i + max_concurrent] 
@@ -342,19 +350,16 @@ class MasterAgent:
             # Создаем задачи для параллельного выполнения
             tasks = []
             for file_path in batch:
-                # Исправление: передаем file_agent_config явно
-                agent = FileAnalysisAgent(file_agent_config)
-                task = asyncio.create_task(agent.analyze_file(file_path))
+                task = asyncio.create_task(self._analyze_single_file(reader, processor, file_path))
                 tasks.append((file_path, task))
             
             # Ждем завершения всех задач в батче
             for file_path, task in tasks:
                 try:
-                    result = await task
-                    if result:
-                        self.knowledge_base.add_file_report(file_path, result)
-                        # Добавляем зависимости в граф
-                        for dep in result.dependencies:
+                    report = await task
+                    if report:
+                        self.knowledge_base.add_file_report(file_path, report)
+                        for dep in report.dependencies:
                             self.knowledge_base.add_dependency(file_path, dep)
                         total_processed += 1
                     else:
@@ -364,6 +369,42 @@ class MasterAgent:
                     print(f"[MasterAgent] Ошибка при анализе файла {file_path}: {e}")
             
             print(f"[MasterAgent] Батч завершен. Обработано файлов: {total_processed}")
+
+    async def _analyze_single_file(self, reader: ReaderAgent, processor: ProcessorAgent, file_path: str) -> Optional[FileAnalysisReport]:
+        """Анализ одного файла с использованием ReaderAgent и ProcessorAgent."""
+        try:
+            structure = await reader.read_file(file_path)
+            if not structure:
+                return None
+            result = await processor.process_structure(self._structure_to_dict(structure))
+            report = FileAnalysisReport(
+                file_path=file_path,
+                language=structure.language,
+                size_lines=structure.total_lines,
+                classes=[{"name": c.name, "line_start": c.line_start, "line_end": c.line_end} for c in structure.classes],
+                functions=[{"name": f.name, "line_start": f.line_start, "line_end": f.line_end} for f in structure.functions],
+                imports=structure.imports,
+                dependencies=result.get("dependencies", []),
+                summary=result.get("summary", ""),
+                complexity_notes=[],
+                issues=[],
+            )
+            return report
+        except Exception as e:
+            print(f"[MasterAgent] Ошибка обработки файла {file_path}: {e}")
+            return None
+
+    def _structure_to_dict(self, structure: CodeStructure) -> Dict[str, Any]:
+        """Преобразование CodeStructure в словарь."""
+        return {
+            "file_path": structure.file_path,
+            "language": structure.language,
+            "imports": structure.imports,
+            "classes": [{"name": c.name} for c in structure.classes],
+            "functions": [{"name": f.name} for f in structure.functions],
+            "dependencies": structure.dependencies,
+            "total_lines": structure.total_lines,
+        }
     
     async def _analyze_project_architecture(self, project_path: str, files: List[str]) -> None:
         """Анализ архитектуры проекта."""
