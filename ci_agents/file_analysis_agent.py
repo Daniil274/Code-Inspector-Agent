@@ -10,11 +10,10 @@ import os
 import re
 from typing import Dict, List, Optional
 
-from src.agents import Agent, Runner, RunConfig, function_tool
-from src.agents.models.openrouter_provider import OpenRouterProvider
-from src.agents.models.lmstudio_provider import LMStudioProvider
-from src.agents.models.multi_provider import MultiProvider
-from src.agents.model_settings import ModelSettings
+from agents import Agent, Runner, RunConfig, function_tool
+from agents.models.openai_provider import OpenAIProvider
+from agents.models.multi_provider import MultiProvider
+from agents.model_settings import ModelSettings
 
 from core.knowledge_base import FileAnalysisReport
 from parser.ast_parser import ASTParser, CodeStructure
@@ -436,18 +435,13 @@ class FileAnalysisAgent:
     
     def _create_model_provider(self):
         """Создание провайдера модели на основе конфигурации."""
-        provider_type = self.model_config.get('provider', 'openrouter')
-        
-        if provider_type == 'openrouter':
-            api_key = os.getenv('OPENROUTER_API_KEY')
-            if not api_key:
-                raise ValueError("OPENROUTER_API_KEY environment variable is required")
-            return OpenRouterProvider(api_key=api_key)
-        
-        elif provider_type == 'lmstudio':
-            base_url = os.getenv('LMSTUDIO_BASE_URL', 'http://localhost:1234/v1')
-            return LMStudioProvider(base_url=base_url)
-        
+        provider_type = self.model_config.get('provider', 'openai')
+
+        if provider_type in ('openai', 'openrouter', 'lmstudio'):
+            api_key = os.getenv('OPENAI_API_KEY', os.getenv('OPENROUTER_API_KEY'))
+            base_url = os.getenv('OPENAI_BASE_URL', os.getenv('LMSTUDIO_BASE_URL'))
+            return OpenAIProvider(api_key=api_key, base_url=base_url)
+
         else:
             raise ValueError(f"Неподдерживаемый провайдер: {provider_type}")
 
