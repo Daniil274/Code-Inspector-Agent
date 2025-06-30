@@ -20,9 +20,9 @@ sys.path.insert(0, src_path)
 # Добавляем путь к модулям CodeInspector
 sys.path.insert(0, current_dir)
 
-from agents.master_agent import MasterAgent
-from agents.file_analysis_agent import FileAnalysisAgent
-from agents.composer_agent import ComposerAgent
+from ci_agents.master_agent import MasterAgent
+from ci_agents.file_analysis_agent import FileAnalysisAgent
+from ci_agents.composer_agent import ComposerAgent
 from core.knowledge_base import KnowledgeBase, FileAnalysisReport
 
 

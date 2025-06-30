@@ -14,7 +14,7 @@ from pathlib import Path
 current_dir = Path(__file__).parent
 sys.path.insert(0, str(current_dir.parent.parent))
 
-from agents.master_agent import MasterAgent
+from ci_agents.master_agent import MasterAgent
 # Импортируем трассировку из основной библиотеки
 from src.agents.tracing import set_trace_processors
 from src.agents.tracing.processors import ConsoleSpanExporter, BatchTraceProcessor
@@ -104,7 +104,7 @@ async def main():
         os.chdir(current_dir)
         
         # Создаем мастер-агента
-        master_agent = MasterAgent(config_path=args.config)
+        master_agent = MasterAgent(config_path=args.config, output_dir=args.output)
         
         # Запускаем анализ
         result = await master_agent.analyze_project(args.project_path)
